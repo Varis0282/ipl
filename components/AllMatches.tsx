@@ -93,6 +93,9 @@ export default function Home() {
             );
             setFilteredMatches(filtered);
         }
+        if (remainingOnly) {
+            handleRemainingOnly(true);
+        }
     };
 
     useEffect(() => {
