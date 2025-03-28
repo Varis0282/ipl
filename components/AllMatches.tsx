@@ -135,6 +135,9 @@ export default function Home() {
                                 <button
                                     key={team}
                                     onClick={() => toggleTeamFilter(team)}
+                                    style={{
+                                        minWidth: "fit-content"
+                                    }}
                                     className={`flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 rounded-lg text-[10px] md:text-sm font-medium ${selectedTeams.includes(team) ? "bg-blue-500 text-white" : "text-gray-800"}`}
                                 >
                                     <Image src={teamLogos[team as keyof typeof teamLogos]} alt={team} width={24} height={24} />
