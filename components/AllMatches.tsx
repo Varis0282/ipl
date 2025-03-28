@@ -54,28 +54,32 @@ export default function Home() {
         setFilteredMatches(data);
     };
 
-    const handleRemainingOnly = (remaining: boolean) => {
-        if (remaining) {
-            const remainingMatches = allMatches.filter((match: any) => {
+    const applyFilters = (teams: string[], showRemaining: boolean) => {
+        let result = [...allMatches];
+
+        if (teams.length > 0) {
+            result = result.filter((match: any) =>
+                teams.some(team => match.match.includes(team))
+            );
+        }
+
+        if (showRemaining) {
+            result = result.filter((match: any) => {
                 const [day, month, year] = match.date.split("-");
                 let [hour, minute] = match.time.split(":");
-                const isPM = match.time.includes("PM");
+                const isPM = match.time.toUpperCase().includes("PM");
+
                 hour = parseInt(hour);
-                minute = parseInt(minute.replace(/\D/g, "")); // Remove non-numeric characters
+                minute = parseInt(minute.replace(/\D/g, ""));
+                if (isPM && hour !== 12) hour += 12;
+                if (!isPM && hour === 12) hour = 0;
 
-                if (isPM && hour !== 12) hour += 12; // Convert PM hours
-                if (!isPM && hour === 12) hour = 0; // Handle midnight (12 AM)
-
-                const matchDate = new Date(`${month} ${day}, ${year} ${hour}:${minute}`);
-                const currentDate = new Date();
-                console.log("🚀 => currentDate:", currentDate);
-                console.log("🚀 => matchDate:", matchDate);
-                return matchDate > currentDate;
+                const matchDate = new Date(`${month} ${day}, 2025 ${hour}:${minute}`);
+                return matchDate > new Date();
             });
-            setFilteredMatches(remainingMatches);
-        } else {
-            setFilteredMatches(allMatches);
         }
+
+        setFilteredMatches(result);
     };
 
     const toggleTeamFilter = (team: string) => {
@@ -84,18 +88,13 @@ export default function Home() {
             : [...selectedTeams, team];
 
         setSelectedTeams(updated);
+        applyFilters(updated, remainingOnly);
+    };
 
-        if (updated.length === 0) {
-            setFilteredMatches(allMatches);
-        } else {
-            const filtered = allMatches.filter((match: any) =>
-                updated.some(t => match.match.includes(t))
-            );
-            setFilteredMatches(filtered);
-        }
-        if (remainingOnly) {
-            handleRemainingOnly(true);
-        }
+    const toggleRemainingOnly = () => {
+        const updated = !remainingOnly;
+        setRemainingOnly(updated);
+        applyFilters(selectedTeams, updated);
     };
 
     useEffect(() => {
@@ -106,22 +105,18 @@ export default function Home() {
         <div className="w-full md:px-4 md:py-10 md:max-w-6xl md:mx-auto">
             {show && (
                 <>
-                    {/* Filter Buttons */}
                     <div className="flex md:flex-wrap overflow-x-scroll gap-x-6 md:gap-4 gap-2 mb-4 md:mb-8">
                         <button
                             onClick={() => {
                                 setSelectedTeams([]);
-                                setFilteredMatches(allMatches);
+                                applyFilters([], remainingOnly);
                             }}
                             className={`gap-2 px-2 py-1 md:px-4 md:py-2 rounded-lg text-[10px] md:text-sm font-medium ${selectedTeams.length === 0 ? "bg-blue-500 text-white" : "text-gray-800"}`}
                         >
                             All Teams
                         </button>
                         <button
-                            onClick={() => {
-                                setRemainingOnly(!remainingOnly);
-                                handleRemainingOnly(!remainingOnly);
-                            }}
+                            onClick={toggleRemainingOnly}
                             className={`gap-2 px-2 py-1 md:px-4 md:py-2 rounded-lg text-[10px] md:text-sm font-medium ${remainingOnly ? "bg-blue-500 text-white" : "text-gray-800"}`}
                         >
                             Remaining Only
@@ -132,15 +127,13 @@ export default function Home() {
                                 const bSelected = selectedTeams.includes(b);
                                 if (aSelected && !bSelected) return -1;
                                 if (!aSelected && bSelected) return 1;
-                                return a.localeCompare(b); // fallback: alphabetical
+                                return a.localeCompare(b);
                             })
                             .map((team) => (
                                 <button
                                     key={team}
                                     onClick={() => toggleTeamFilter(team)}
-                                    style={{
-                                        minWidth: "fit-content"
-                                    }}
+                                    style={{ minWidth: "fit-content" }}
                                     className={`flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 rounded-lg text-[10px] md:text-sm font-medium ${selectedTeams.includes(team) ? "bg-blue-500 text-white" : "text-gray-800"}`}
                                 >
                                     <Image src={teamLogos[team as keyof typeof teamLogos]} alt={team} width={24} height={24} />
@@ -152,7 +145,6 @@ export default function Home() {
                             ))}
                     </div>
 
-                    {/* Match Table */}
                     <div className="overflow-x-auto">
                         <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
                             <thead className="bg-gray-100 text-sm text-gray-700">
@@ -171,13 +163,13 @@ export default function Home() {
                                         <tr key={index} className="border-b hover:bg-gray-50 transition duration-200">
                                             <td className="md:p-3 px-1.5 py-3 text-center">
                                                 <span className="hidden sm:inline text-center">{team1}</span>
-                                                <span className="flex justify-center items-center sm:hidden ">
+                                                <span className="flex justify-center items-center sm:hidden">
                                                     <Image src={teamLogos[team1 as keyof typeof teamLogos]} alt={team1} width={24} height={24} />
                                                 </span>
                                             </td>
                                             <td className="md:p-3 px-1.5 py-3 text-center">
                                                 <span className="hidden sm:inline text-center">{team2}</span>
-                                                <span className="flex justify-center items-center sm:hidden ">
+                                                <span className="flex justify-center items-center sm:hidden">
                                                     <Image src={teamLogos[team2 as keyof typeof teamLogos]} alt={team2} width={24} height={24} />
                                                 </span>
                                             </td>
@@ -193,12 +185,12 @@ export default function Home() {
                 </>
             )}
 
-            {/* View All Button */}
             <div className="flex justify-center mt-8">
                 <button
                     onClick={() => {
                         setSelectedTeams([]);
                         setShow(!show);
+                        setRemainingOnly(false);
                         setFilteredMatches(allMatches);
                     }}
                     className="bg-[#DB2E1D] hover:bg-[#f53c2a] text-white px-6 py-2 rounded-lg font-semibold transition duration-300"
