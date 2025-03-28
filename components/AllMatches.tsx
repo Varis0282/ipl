@@ -151,11 +151,11 @@ export default function Home() {
                         <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
                             <thead className="bg-gray-100 text-sm text-gray-700">
                                 <tr>
-                                    <th className="p-3 text-left">Team 1</th>
-                                    <th className="p-3 text-left">Team 2</th>
-                                    <th className="p-3 text-left">Date</th>
-                                    <th className="p-3 text-left">Day & Time</th>
-                                    <th className="p-3 text-left">Venue</th>
+                                    <th className="md:p-3 px-1.5 py-3 text-center">Team 1</th>
+                                    <th className="md:p-3 px-1.5 py-3 text-center">Team 2</th>
+                                    <th className="md:p-3 px-1.5 py-3 text-center">Date</th>
+                                    <th className="md:p-3 px-1.5 py-3 text-center">Day & Time</th>
+                                    <th className="md:p-3 px-1.5 py-3 text-center">Venue</th>
                                 </tr>
                             </thead>
                             <tbody className="text-sm text-gray-800">
@@ -163,21 +163,21 @@ export default function Home() {
                                     const [team1, team2] = match.match.split("vs").map((s: any) => s.trim());
                                     return (
                                         <tr key={index} className="border-b hover:bg-gray-50 transition duration-200">
-                                            <td className="p-3">
-                                                <span className="hidden sm:inline">{team1}</span>
-                                                <span className="inline sm:hidden">
+                                            <td className="md:p-3 px-1.5 py-3 text-center">
+                                                <span className="hidden sm:inline text-center">{team1}</span>
+                                                <span className="flex justify-center items-center sm:hidden ">
                                                     <Image src={teamLogos[team1 as keyof typeof teamLogos]} alt={team1} width={24} height={24} />
                                                 </span>
                                             </td>
-                                            <td className="p-3">
-                                                <span className="hidden sm:inline">{team2}</span>
-                                                <span className="inline sm:hidden">
+                                            <td className="md:p-3 px-1.5 py-3 text-center">
+                                                <span className="hidden sm:inline text-center">{team2}</span>
+                                                <span className="flex justify-center items-center sm:hidden ">
                                                     <Image src={teamLogos[team2 as keyof typeof teamLogos]} alt={team2} width={24} height={24} />
                                                 </span>
                                             </td>
-                                            <td className="p-3">{match.date}</td>
-                                            <td className="p-3">{match.day}, {match.time}</td>
-                                            <td className="p-3">{match.venue}</td>
+                                            <td className="md:p-3 px-1.5 py-3 text-center">{match.date}</td>
+                                            <td className="md:p-3 px-1.5 py-3 text-center">{match.day}, {match.time}</td>
+                                            <td className="md:p-3 px-1.5 py-3 text-center">{match.venue}</td>
                                         </tr>
                                     );
                                 })}
