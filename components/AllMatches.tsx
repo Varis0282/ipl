@@ -45,12 +45,37 @@ export default function Home() {
     const [filteredMatches, setFilteredMatches] = useState([]);
     const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
     const [show, setShow] = useState(false);
+    const [remainingOnly, setRemainingOnly] = useState(false);
 
     const getAllMatches = async () => {
         const res = await fetch("/ipl-schedule-final.json");
         const data = await res.json();
         setAllMatches(data);
         setFilteredMatches(data);
+    };
+
+    const handleRemainingOnly = (remaining: boolean) => {
+        if (remaining) {
+            const remainingMatches = allMatches.filter((match: any) => {
+                const [day, month, year] = match.date.split("-");
+                let [hour, minute] = match.time.split(":");
+                const isPM = match.time.includes("PM");
+                hour = parseInt(hour);
+                minute = parseInt(minute.replace(/\D/g, "")); // Remove non-numeric characters
+
+                if (isPM && hour !== 12) hour += 12; // Convert PM hours
+                if (!isPM && hour === 12) hour = 0; // Handle midnight (12 AM)
+
+                const matchDate = new Date(`${month} ${day}, ${year} ${hour}:${minute}`);
+                const currentDate = new Date();
+                console.log("🚀 => currentDate:", currentDate);
+                console.log("🚀 => matchDate:", matchDate);
+                return matchDate > currentDate;
+            });
+            setFilteredMatches(remainingMatches);
+        } else {
+            setFilteredMatches(allMatches);
+        }
     };
 
     const toggleTeamFilter = (team: string) => {
@@ -85,23 +110,40 @@ export default function Home() {
                                 setSelectedTeams([]);
                                 setFilteredMatches(allMatches);
                             }}
-                            className={`gap-2 px-2 py-1 md:px-4 md:py-2 rounded-lg text-[10px] md:text-sm font-medium ${selectedTeams.length === 0 ? "text-blue-800" : "text-gray-800"}`}
+                            className={`gap-2 px-2 py-1 md:px-4 md:py-2 rounded-lg text-[10px] md:text-sm font-medium ${selectedTeams.length === 0 ? "bg-blue-500 text-white" : "text-gray-800"}`}
                         >
                             All Teams
                         </button>
-                        {Object.keys(teamLogos).map((team) => (
-                            <button
-                                key={team}
-                                onClick={() => toggleTeamFilter(team)}
-                                className={`flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 rounded-lg text-[10px] md:text-sm font-medium ${selectedTeams.includes(team) ? "text-blue-800" : "text-gray-800"}`}
-                            >
-                                <Image src={teamLogos[team as keyof typeof teamLogos]} alt={team} width={24} height={24} />
-                                <span className="hidden sm:inline">{team}</span>
-                                <span className="inline sm:hidden">
-                                    {teamAbbreviations[team as keyof typeof teamAbbreviations]}
-                                </span>
-                            </button>
-                        ))}
+                        <button
+                            onClick={() => {
+                                setRemainingOnly(!remainingOnly);
+                                handleRemainingOnly(!remainingOnly);
+                            }}
+                            className={`gap-2 px-2 py-1 md:px-4 md:py-2 rounded-lg text-[10px] md:text-sm font-medium ${remainingOnly ? "bg-blue-500 text-white" : "text-gray-800"}`}
+                        >
+                            Remaining Only
+                        </button>
+                        {Object.keys(teamLogos)
+                            .sort((a, b) => {
+                                const aSelected = selectedTeams.includes(a);
+                                const bSelected = selectedTeams.includes(b);
+                                if (aSelected && !bSelected) return -1;
+                                if (!aSelected && bSelected) return 1;
+                                return a.localeCompare(b); // fallback: alphabetical
+                            })
+                            .map((team) => (
+                                <button
+                                    key={team}
+                                    onClick={() => toggleTeamFilter(team)}
+                                    className={`flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 rounded-lg text-[10px] md:text-sm font-medium ${selectedTeams.includes(team) ? "bg-blue-500 text-white" : "text-gray-800"}`}
+                                >
+                                    <Image src={teamLogos[team as keyof typeof teamLogos]} alt={team} width={24} height={24} />
+                                    <span className="hidden sm:inline">{team}</span>
+                                    <span className="inline sm:hidden">
+                                        {teamAbbreviations[team as keyof typeof teamAbbreviations]}
+                                    </span>
+                                </button>
+                            ))}
                     </div>
 
                     {/* Match Table */}
